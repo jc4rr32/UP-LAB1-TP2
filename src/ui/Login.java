@@ -16,7 +16,7 @@ public class Login extends JFrame {
 	private UsuarioService usuarioService;
 
 	public Login() {
-		setTitle("Abstergo");
+		setTitle("Turnero Medico UP");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
 
