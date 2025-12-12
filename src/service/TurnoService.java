@@ -14,34 +14,29 @@ import exceptions.TurnoNoDisponibleException;
 public class TurnoService {
     private final TurnoDAO turnoDao;
 
-    public TurnoService() {
+    public TurnoService() throws DAOException {
         this.turnoDao = new TurnoDAOImpl();
     }
 
     public void registrarTurno(Turno turno) throws ServiceException, TurnoNoDisponibleException {
-        Connection conn = null;
+        // ELIMINAMOS la conexión local 'conn' aquí porque el DAO ya maneja la suya.
+        // Esto evita el error "Database is locked".
         try {
-            conn = DBConnection.getConnection();
-            
             // Regla de Negocio: Validar Disponibilidad
             if (turnoDao.existeTurnoMedico(turno.getMedico().getId(), turno.getFechaHora())) {
                 throw new TurnoNoDisponibleException("El médico ya tiene un turno asignado en esa fecha y hora.");
             }
 
-            // Guardar con transacción
+            // Guardar (El DAO se encarga de la persistencia)
             turnoDao.guardar(turno);
-            DBUtils.commit(conn);
             
         } catch (Exception e) {
-            try { DBUtils.rollback(conn); } catch (Exception ex) {}
-            
             if (e instanceof TurnoNoDisponibleException) {
                 throw (TurnoNoDisponibleException) e;
             }
             throw new ServiceException("Error al registrar turno: " + e.getMessage(), e);
         }
     }
-
     public List<Turno> listarTurnos() throws ServiceException {
         try {
             return turnoDao.listarTodos();

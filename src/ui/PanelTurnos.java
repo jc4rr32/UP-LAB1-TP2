@@ -27,10 +27,12 @@ public class PanelTurnos extends JPanel {
     private DefaultTableModel modelo;
 
     public PanelTurnos() {
-        this.turnoService = new TurnoService();
-        try {
+    	try {
+            this.turnoService = new TurnoService();   // <--- AHORA ESTÁ PROTEGIDO
             this.usuarioService = new UsuarioService();
-        } catch (Exception e) { throw new RuntimeException(e); }
+        } catch (Exception e) { 
+            throw new RuntimeException("Error iniciando servicios", e); 
+        }
 
         setLayout(new BorderLayout(10, 10));
         

@@ -13,7 +13,7 @@ import java.util.Map;
 public class ReporteService {
     private TurnoDAO turnoDAO;
 
-    public ReporteService() {
+    public ReporteService() throws DAOException {
         this.turnoDAO = new TurnoDAOImpl();
     }
 

@@ -15,14 +15,41 @@ import exceptions.DAOException;
 
 public class TurnoDAOImpl implements TurnoDAO {
     
-    // Formato compatible con SQLite (que guarda fechas como texto)
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final Connection conn;
+
+    public TurnoDAOImpl() throws DAOException {
+        try {
+            this.conn = DBConnection.getConnection();
+            //crearTablaTurnos(); // SOLO SI LA TABLA NO ESTA CREADA
+        } catch (SQLException e) {
+            throw new DAOException("Error al inicializar DAO de Turno", e);
+        }
+    }
+
+  /*  private void crearTablaTurnos() throws DAOException {
+        String sql = """
+            CREATE TABLE IF NOT EXISTS turnos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fechaHora TEXT NOT NULL,
+                medico_id INTEGER NOT NULL,
+                paciente_id INTEGER NOT NULL,
+                FOREIGN KEY(medico_id) REFERENCES usuarios(id),
+                FOREIGN KEY(paciente_id) REFERENCES usuarios(id)
+            );
+        """;
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            throw new DAOException("Error al crear tabla turnos", e);
+        }
+    }*/
 
     @Override
     public void guardar(Turno turno) throws DAOException {
         String sql = "INSERT INTO turnos (fechaHora, medico_id, paciente_id) VALUES (?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        // Usamos this.conn en lugar de abrir una nueva para evitar bloqueos
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, turno.getFechaHora().format(formatter));
             ps.setInt(2, turno.getMedico().getId());
@@ -37,8 +64,7 @@ public class TurnoDAOImpl implements TurnoDAO {
     @Override
     public boolean existeTurnoMedico(int idMedico, LocalDateTime fechaHora) throws DAOException {
         String sql = "SELECT COUNT(*) FROM turnos WHERE medico_id = ? AND fechaHora = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setInt(1, idMedico);
             ps.setString(2, fechaHora.format(formatter));
@@ -54,27 +80,30 @@ public class TurnoDAOImpl implements TurnoDAO {
 
     @Override
     public List<Turno> listarTodos() throws DAOException {
-        // JOIN para traer datos completos del médico y paciente en una sola consulta
         String sql = "SELECT t.id, t.fechaHora, " +
-                     "m.id as m_id, m.dni as m_dni, m.nombre as m_nom, m.apellido as m_ape, m.email as m_mail, m.honorariosPorConsulta as m_hon, " +
-                     "p.id as p_id, p.dni as p_dni, p.nombre as p_nom, p.apellido as p_ape, p.email as p_mail " +
+                     "m.id as m_id, m.dni as m_dni, m.nombre as m_nom, m.apellido as m_ape, m.email as m_mail, m.honorariosPorConsulta as m_hon, m.obra_social as m_os, " +
+                     "p.id as p_id, p.dni as p_dni, p.nombre as p_nom, p.apellido as p_ape, p.email as p_mail, p.obra_social as p_os " +
                      "FROM turnos t " +
                      "JOIN usuarios m ON t.medico_id = m.id " +
                      "JOIN usuarios p ON t.paciente_id = p.id";
                      
         List<Turno> lista = new ArrayList<>();
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while(rs.next()) {
+                // Recuperar Medico (con manejo de nulos para campos nuevos)
+                base.ObraSocial osMedico = rs.getString("m_os") != null ? base.ObraSocial.valueOf(rs.getString("m_os")) : null;
                 Medico medico = new Medico(
                     rs.getInt("m_id"), rs.getString("m_dni"), rs.getString("m_nom"), 
-                    rs.getString("m_ape"), rs.getString("m_mail"), rs.getDouble("m_hon"), null
+                    rs.getString("m_ape"), rs.getString("m_mail"), rs.getDouble("m_hon"), osMedico
                 );
+                
+                // Recuperar Paciente
+                base.ObraSocial osPaciente = rs.getString("p_os") != null ? base.ObraSocial.valueOf(rs.getString("p_os")) : null;
                 Paciente paciente = new Paciente(
                     rs.getInt("p_id"), rs.getString("p_dni"), rs.getString("p_nom"), 
-                    rs.getString("p_ape"), rs.getString("p_mail"), null
+                    rs.getString("p_ape"), rs.getString("p_mail"), osPaciente
                 );
                 
                 LocalDateTime fecha = LocalDateTime.parse(rs.getString("fechaHora"), formatter);
