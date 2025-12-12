@@ -22,9 +22,8 @@ public class TurnoDAOImpl implements TurnoDAO {
     public TurnoDAOImpl() throws DAOException {
         try {
             this.conn = DBConnection.getConnection();
-            // YA NO CREAMOS LA TABLA AQUÍ
         } catch (SQLException e) {
-            throw new DAOException("Error al inicializar DAO de Turno", e);
+            throw new DAOException("Error al conectar con la BD en TurnoDAO", e);
         }
     }
 
@@ -57,6 +56,7 @@ public class TurnoDAOImpl implements TurnoDAO {
 
     @Override
     public List<Turno> listarTodos() throws DAOException {
+        // AGREGADO: ORDER BY t.fechaHora
         String sql = """
             SELECT t.id, t.fechaHora,
                    m.id as m_id, m.dni as m_dni, m.nombre as m_nom, m.apellido as m_ape, m.email as m_mail, m.honorariosPorConsulta as m_hon, m.obra_social as m_os,
@@ -64,12 +64,14 @@ public class TurnoDAOImpl implements TurnoDAO {
             FROM turnos t
             JOIN usuarios m ON t.medico_id = m.id
             JOIN usuarios p ON t.paciente_id = p.id
+            ORDER BY t.fechaHora ASC
         """;
         return ejecutarConsultaListado(sql, -1);
     }
 
     @Override
     public List<Turno> listarPorPaciente(int idPaciente) throws DAOException {
+        // AGREGADO: ORDER BY t.fechaHora
         String sql = """
             SELECT t.id, t.fechaHora,
                    m.id as m_id, m.dni as m_dni, m.nombre as m_nom, m.apellido as m_ape, m.email as m_mail, m.honorariosPorConsulta as m_hon, m.obra_social as m_os,
@@ -78,12 +80,14 @@ public class TurnoDAOImpl implements TurnoDAO {
             JOIN usuarios m ON t.medico_id = m.id
             JOIN usuarios p ON t.paciente_id = p.id
             WHERE t.paciente_id = ?
+            ORDER BY t.fechaHora ASC
         """;
         return ejecutarConsultaListado(sql, idPaciente);
     }
 
     @Override
     public List<Turno> listarPorMedico(int idMedico) throws DAOException {
+        // AGREGADO: ORDER BY t.fechaHora
         String sql = """
             SELECT t.id, t.fechaHora,
                    m.id as m_id, m.dni as m_dni, m.nombre as m_nom, m.apellido as m_ape, m.email as m_mail, m.honorariosPorConsulta as m_hon, m.obra_social as m_os,
@@ -92,11 +96,11 @@ public class TurnoDAOImpl implements TurnoDAO {
             JOIN usuarios m ON t.medico_id = m.id
             JOIN usuarios p ON t.paciente_id = p.id
             WHERE t.medico_id = ?
+            ORDER BY t.fechaHora ASC
         """;
         return ejecutarConsultaListado(sql, idMedico);
     }
 
-    // Método helper para no repetir el mapeo en los 3 listados
     private List<Turno> ejecutarConsultaListado(String sql, int idFiltro) throws DAOException {
         List<Turno> lista = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

@@ -13,8 +13,12 @@ import exceptions.DatosInvalidosException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 public class PanelTurnos extends JPanel {
@@ -24,9 +28,14 @@ public class PanelTurnos extends JPanel {
     private final UsuarioService usuarioService;
     private final Usuario usuarioActual;
     
+    // Componentes gráficos
     private JComboBox<Medico> cmbMedicos;
     private JComboBox<Paciente> cmbPacientes;
-    private CampoPanel cpFecha; 
+    
+    // Nuevos componentes para Fecha y Hora
+    private JSpinner spinnerFecha;
+    private JComboBox<String> comboHora;
+    
     private JTable tabla;
     private DefaultTableModel modelo;
 
@@ -37,24 +46,22 @@ public class PanelTurnos extends JPanel {
             this.turnoService = new TurnoService();
             this.usuarioService = new UsuarioService();
         } catch (Exception e) { 
-            throw new RuntimeException("Error iniciando servicios", e); 
+            throw new RuntimeException("Error iniciando servicios en PanelTurnos", e); 
         }
 
         setLayout(new BorderLayout(10, 10));
         
-        // --- FORMULARIO ---
+        // --- 1. SECCIÓN FORMULARIO (ARRIBA) ---
         JPanel panelForm = new JPanel(new GridLayout(0, 2, 5, 5));
         panelForm.setBorder(BorderFactory.createTitledBorder("Agendar Nuevo Turno"));
         
-        // 1. Selector de Médico (Visible solo si NO soy Médico)
-        if (usuarioActual.getRol() != Rol.MEDICO) {
-            panelForm.add(new JLabel("Médico:"));
-            cmbMedicos = new JComboBox<>();
-            cargarMedicos();
-            panelForm.add(cmbMedicos);
-        }
+        // -- Selector de Médico --
+        panelForm.add(new JLabel("Médico:"));
+        cmbMedicos = new JComboBox<>();
+        cargarMedicos();
+        panelForm.add(cmbMedicos);
 
-        // 2. Selector de Paciente (Visible solo si NO soy Paciente)
+        // -- Selector de Paciente --
         if (usuarioActual.getRol() != Rol.PACIENTE) {
             panelForm.add(new JLabel("Paciente:"));
             cmbPacientes = new JComboBox<>();
@@ -62,34 +69,41 @@ public class PanelTurnos extends JPanel {
             panelForm.add(cmbPacientes);
         }
 
-        // Fecha
-        cpFecha = new CampoPanel("Fecha (yyyy-MM-dd HH:mm):", 15, false);
-        panelForm.add(cpFecha.getLabel()); 
-        panelForm.add(cpFecha.getField());
+        // -- Selector de FECHA (Calendario simple con Spinner) --
+        panelForm.add(new JLabel("Fecha del Turno:"));
+        // Configuramos el Spinner para manejar fechas
+        SpinnerDateModel dateModel = new SpinnerDateModel();
+        spinnerFecha = new JSpinner(dateModel);
+        JSpinner.DateEditor de = new JSpinner.DateEditor(spinnerFecha, "dd/MM/yyyy");
+        spinnerFecha.setEditor(de);
+        spinnerFecha.setValue(new Date()); // Seteamos hoy por defecto
+        panelForm.add(spinnerFecha);
 
-        // Botón
+        // -- Selector de HORA (Intervalos de 30 mins) --
+        panelForm.add(new JLabel("Horario (30 min):"));
+        comboHora = new JComboBox<>();
+        cargarHorariosDisponibles();
+        panelForm.add(comboHora);
+
+        // -- Botón Guardar --
         JButton btnGuardar = new JButton("Confirmar Turno");
         btnGuardar.addActionListener(e -> guardarTurno());
-        panelForm.add(new JLabel("")); 
+        
+        panelForm.add(new JLabel("")); // Espaciador
         panelForm.add(btnGuardar);
 
         add(panelForm, BorderLayout.NORTH);
 
-        // --- TABLA ---
-        // Definimos columnas según el rol
+        // --- 2. SECCIÓN TABLA (CENTRO) ---
         String[] columnas;
         if (usuarioActual.getRol() == Rol.PACIENTE) {
-            // Paciente ve al Médico
             columnas = new String[]{"Fecha y Hora", "Médico", "Costo"};
-        } else if (usuarioActual.getRol() == Rol.MEDICO) {
-            // Médico ve al Paciente
-            columnas = new String[]{"Fecha y Hora", "Paciente", "Costo"};
         } else {
-            // Admin ve a ambos
             columnas = new String[]{"Fecha y Hora", "Médico", "Paciente", "Costo"};
         }
 
         modelo = new DefaultTableModel(columnas, 0) {
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
@@ -98,6 +112,14 @@ public class PanelTurnos extends JPanel {
         add(new JScrollPane(tabla), BorderLayout.CENTER);
         
         recargarTabla();
+    }
+
+    /** Carga horarios de 08:00 a 20:00 cada 30 minutos */
+    private void cargarHorariosDisponibles() {
+        for (int hora = 8; hora < 20; hora++) {
+            comboHora.addItem(String.format("%02d:00", hora));
+            comboHora.addItem(String.format("%02d:30", hora));
+        }
     }
 
     private void cargarMedicos() {
@@ -114,16 +136,9 @@ public class PanelTurnos extends JPanel {
 
     private void guardarTurno() {
         try {
-            // Determinamos Médico
-            Medico m;
-            if (usuarioActual.getRol() == Rol.MEDICO) {
-                m = (Medico) usuarioActual;
-            } else {
-                m = (Medico) cmbMedicos.getSelectedItem();
-            }
-
-            // Determinamos Paciente
+            Medico m = (Medico) cmbMedicos.getSelectedItem();
             Paciente p;
+
             if (usuarioActual.getRol() == Rol.PACIENTE) {
                 p = (Paciente) usuarioActual;
             } else {
@@ -131,31 +146,34 @@ public class PanelTurnos extends JPanel {
             }
 
             if (m == null || p == null) {
-                throw new DatosInvalidosException("Faltan datos (médico o paciente).");
+                throw new DatosInvalidosException("Debe seleccionar médico y paciente.");
             }
 
-            String fechaStr = cpFecha.getTexto();
-            ValidationUtils.validarNoVacio(fechaStr);
+            // 1. Obtener FECHA del Spinner
+            Date fechaDate = (Date) spinnerFecha.getValue();
+            // Convertir a LocalDate (nueva API de Java 8)
+            LocalDate fecha = fechaDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            // 2. Obtener HORA del Combo
+            String horaStr = (String) comboHora.getSelectedItem();
+            LocalTime hora = LocalTime.parse(horaStr);
+
+            // 3. Combinar en LocalDateTime
+            LocalDateTime fechaHora = LocalDateTime.of(fecha, hora);
             
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            LocalDateTime fechaHora = LocalDateTime.parse(fechaStr, formatter);
+            // 4. Validar que sea futura
             ValidationUtils.validarFechaFutura(fechaHora);
 
             Turno t = new Turno(fechaHora, m, p);
             turnoService.registrarTurno(t);
             
             JOptionPane.showMessageDialog(this, "Turno registrado exitosamente.");
-            cpFecha.limpiar();
             recargarTabla();
             
         } catch (DatosInvalidosException ex) {
              JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
-            String msg = ex.getMessage();
-            if (ex instanceof java.time.format.DateTimeParseException) {
-                msg = "Formato de fecha inválido. Use yyyy-MM-dd HH:mm";
-            }
-            JOptionPane.showMessageDialog(this, "Error: " + msg, "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -164,7 +182,7 @@ public class PanelTurnos extends JPanel {
         try {
             List<Turno> turnos;
             
-            // Selección de método de búsqueda según rol
+            // Los turnos ya vienen ordenados desde el DAO (ORDER BY fechaHora ASC)
             if (usuarioActual.getRol() == Rol.PACIENTE) {
                 turnos = turnoService.listarTurnosPorPaciente(usuarioActual.getId());
             } else if (usuarioActual.getRol() == Rol.MEDICO) {
