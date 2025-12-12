@@ -44,7 +44,7 @@ public class PantallaPrincipal extends JFrame {
 //        lblBienvenido.setFont(lblBienvenido.getFont().deriveFont(Font.BOLD, 16f));
 //        add(lblBienvenido, BorderLayout.NORTH);
 
-		// Crear barra de menú estilo Office 2003
+		// Crear barra de menú
 		JMenuBar menuBar = new JMenuBar();
 
 		// Menú "Ver" con todas las opciones, incluyendo Salir
