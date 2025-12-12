@@ -44,4 +44,20 @@ public class TurnoService {
             throw new ServiceException("Error al listar turnos", e);
         }
     }
+    
+    public List<Turno> listarTurnosPorPaciente(int idPaciente) throws ServiceException {
+        try {
+            return turnoDao.listarPorPaciente(idPaciente);
+        } catch (DAOException e) {
+            throw new ServiceException("Error al listar turnos del paciente", e);
+        }
+    }
+    
+    public List<Turno> listarTurnosPorMedico(int idMedico) throws ServiceException {
+        try {
+            return turnoDao.listarPorMedico(idMedico);
+        } catch (DAOException e) {
+            throw new ServiceException("Error al obtener turnos del médico", e);
+        }
+    }
 }

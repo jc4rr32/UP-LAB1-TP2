@@ -162,7 +162,7 @@ public class PantallaPrincipal extends JFrame {
 	private void abrirTurnos() {
 	    try {
 	        JInternalFrame jf = new JInternalFrame("Gestión de Turnos", true, true, true, true);
-	        PanelTurnos panel = new PanelTurnos();
+	        PanelTurnos panel = new PanelTurnos(loggedUser);
 	        jf.setContentPane(panel);
 	        jf.pack();
 	        // Ajuste de tamaño mínimo para que se vea bien
