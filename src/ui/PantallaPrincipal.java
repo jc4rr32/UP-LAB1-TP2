@@ -53,13 +53,13 @@ public class PantallaPrincipal extends JFrame {
 		miMedicos = new JMenuItem("Medicos");
 		miPacientes = new JMenuItem("Pacientes");
 		//miTurnos = new JMenuItem("Turnos");
-		//miReportes = new JMenuItem("Reportes");
+		miReportes = new JMenuItem("Reportes");
 		miSalir = new JMenuItem("Salir");
 
 		menuVer.add(miMedicos);
 		menuVer.add(miPacientes);
 		//menuVer.add(miTurnos);
-		//menuVer.add(miReportes);
+		menuVer.add(miReportes);
 		menuVer.addSeparator();
 		menuVer.add(miSalir);
 
@@ -86,7 +86,7 @@ public class PantallaPrincipal extends JFrame {
 		miMedicos.addActionListener(e -> abrirMedicos());
 		miPacientes.addActionListener(e -> abrirPacientes());
 		//miTurnos.addActionListener(e -> abrirTurnos());
-		//miReportes.addActionListener(e -> abrirReportes());
+		miReportes.addActionListener(e -> abrirReportes());
 		miSalir.addActionListener(e -> System.exit(0));
 
 		// Tamaño inicial y mínimos

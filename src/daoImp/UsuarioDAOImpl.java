@@ -45,10 +45,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	@Override
 	public boolean guardar(Usuario usuario) throws DAOException {
 	    String sql = """
-	        INSERT INTO usuarios
-	          (dni, nombre, apellido, email, rol, honorariosPorConsulta)
-	        VALUES (?, ?, ?, ?, ?, ?)
-	        """;
+	            INSERT INTO usuarios
+	            (dni, nombre, apellido, email, rol, honorariosPorConsulta, obra_social)
+	          VALUES (?, ?, ?, ?, ?, ?, ?)
+	          """;
 	    try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 	        ps.setString(1, usuario.getDni());
 	        ps.setString(2, usuario.getNombre());
@@ -61,7 +61,12 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	            ? ((Medico) usuario).getHonorariosPorConsulta()
 	            : 0.0;
 	        ps.setDouble(6, honor);
-	        ps.setString(7, usuario.getObraSocial() != null ? usuario.getObraSocial().name() : null);
+	        // Manejo de nulos para obra social (Pacientes/Admin podrían no tener)
+	        if (usuario.getObraSocial() != null) {
+	            ps.setString(7, usuario.getObraSocial().name());
+	        } else {
+	            ps.setNull(7, Types.VARCHAR);
+	        }
 	        
 	        int affected = ps.executeUpdate();
 	        if (affected == 0) return false;
@@ -80,15 +85,16 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	@Override
 	public boolean actualizar(Usuario usuario) throws DAOException {
 	    String sql = """
-	        UPDATE usuarios
-	           SET dni                   = ?,
-	               nombre                = ?,
-	               apellido              = ?,
-	               email                 = ?,
-	               rol                   = ?,
-	               honorariosPorConsulta = ?
-	         WHERE id = ?
-	        """;
+	            UPDATE usuarios
+	            SET dni                   = ?,
+	                nombre                = ?,
+	                apellido              = ?,
+	                email                 = ?,
+	                rol                   = ?,
+	                honorariosPorConsulta = ?,
+	                obra_social           = ?
+	          WHERE id = ?
+	         """;
 	    try (PreparedStatement ps = conn.prepareStatement(sql)) {
 	        ps.setString(1, usuario.getDni());
 	        ps.setString(2, usuario.getNombre());
@@ -101,7 +107,16 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	            : 0.0;
 	        ps.setDouble(6, honor);
 
-	        ps.setInt(7, usuario.getId());
+	       // Manejo de Obra Social (puede ser null)
+	        if (usuario.getObraSocial() != null) {
+	            ps.setString(7, usuario.getObraSocial().name());
+	        } else {
+	            ps.setNull(7, Types.VARCHAR);
+	        }
+
+	        // El ID pasa a ser el parámetro 8
+	        ps.setInt(8, usuario.getId());
+
 	        return ps.executeUpdate() > 0;
 
 	    } catch (SQLException e) {
