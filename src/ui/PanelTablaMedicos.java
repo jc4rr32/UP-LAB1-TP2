@@ -88,23 +88,17 @@ public class PanelTablaMedicos extends JPanel {
      * y luego recarga la tabla.
      */
     private void abrirFormulario(String dniOriginal) {
-        try {
+        //try {
+        	// Ya no hace falta el try-catch acá porque FormularioMedicos maneja sus errores
             FormularioMedicos dlg = new FormularioMedicos(
                 SwingUtilities.getWindowAncestor(this),
                 usuarioService,
-                dniOriginal    // ahora es String, no Integer
+                dniOriginal
             );
             dlg.setModal(true);
             dlg.setLocationRelativeTo(this);
             dlg.setVisible(true);
             recargarDatos();
-
-        } catch (DatosInvalidosException ex) {
-            JOptionPane.showMessageDialog(this,
-                "No se encontró médico con DNI " + dniOriginal,
-                "Error", JOptionPane.ERROR_MESSAGE);
-
-        }
     }
     
     private void editarSeleccionado()
