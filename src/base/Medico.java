@@ -9,17 +9,19 @@ public class Medico extends Usuario {
     /**
      * Constructor completo, con ID y DNI conocidos (por ejemplo, al leer de la base de datos)
      */
-    public Medico(int id, String dni, String nombre, String apellido, String email, double honorariosPorConsulta) {
-        super(id, dni, nombre, apellido, email, Rol.MEDICO);
-        this.honorariosPorConsulta = honorariosPorConsulta;
+    public Medico(int id, String dni, String nombre, String apellido, String email, double honorarios, ObraSocial obraSocial) {
+        // Pasamos la obraSocial al padre (Usuario)
+        super(id, dni, nombre, apellido, email, Rol.MEDICO, obraSocial);
+        this.honorariosPorConsulta = honorarios;
     }
 
     /**
      * Constructor para nuevos médicos (ID asignado automáticamente al guardar)
      */
-    public Medico(String dni, String nombre, String apellido, String email, double honorariosPorConsulta) {
-        super(dni, nombre, apellido, email, Rol.MEDICO);
-        this.honorariosPorConsulta = honorariosPorConsulta;
+    public Medico(String dni, String nombre, String apellido, String email, double honorarios, ObraSocial obraSocial) {
+        // Pasamos la obraSocial al padre
+        super(dni, nombre, apellido, email, Rol.MEDICO, obraSocial);
+        this.honorariosPorConsulta = honorarios;
     }
 
     public double getHonorariosPorConsulta() {
@@ -31,6 +33,8 @@ public class Medico extends Usuario {
 
     @Override
     public String toString() {
-        return super.getNombre() + " " + super.getApellido() + " (DNI: " + getDni() + ") - Honorarios: $" + honorariosPorConsulta;
+    	// Agrego la obra social al toString para verlo en los logs o combos
+        String os = (getObraSocial() != null) ? getObraSocial().name() : "Sin OS";
+        return super.getNombre() + " " + super.getApellido() + " (" + os + ") - $" + honorariosPorConsulta;
     }
 }

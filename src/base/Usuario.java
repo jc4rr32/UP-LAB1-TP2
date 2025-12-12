@@ -7,24 +7,25 @@ public abstract class Usuario {
     private String apellido;
     private String email;
     private Rol rol;
-
+    private ObraSocial obraSocial;
     /**
      * Constructor completo, con ID y DNI conocidos (por ejemplo, al leer de la base de datos)
      */
-    public Usuario(int id, String dni, String nombre, String apellido, String email, Rol rol) {
+    public Usuario(int id, String dni, String nombre, String apellido, String email, Rol rol, ObraSocial obraSocial) {
         this.id = id;
         this.dni = dni;
         this.nombre = nombre;
         this.apellido = apellido;
         this.email = email;
         this.rol = rol;
+        this.obraSocial = obraSocial;
     }
 
     /**
      * Constructor para nuevos usuarios (ID asignado automáticamente al guardar)
      */
-    public Usuario(String dni, String nombre, String apellido, String email, Rol rol) {
-        this(0, dni, nombre, apellido, email, rol);
+    public Usuario(String dni, String nombre, String apellido, String email, Rol rol, ObraSocial obraSocial) {
+        this(0, dni, nombre, apellido, email, rol, obraSocial);
     }
 
     // Getters y setters
@@ -63,6 +64,14 @@ public abstract class Usuario {
     }
     public void setRol(Rol rol) {
         this.rol = rol;
+    }
+    
+    public ObraSocial getObraSocial() {
+        return obraSocial;
+    }
+    
+    public void setObraSocial(ObraSocial obraSocial) {
+        this.obraSocial = obraSocial;
     }
 }
 
