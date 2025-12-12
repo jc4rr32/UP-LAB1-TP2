@@ -6,6 +6,7 @@ import java.sql.SQLException;
 
 import base.Rol;
 import base.Usuario;
+import service.TurnoService;
 import service.UsuarioService;
 import exceptions.DAOException;
 
@@ -18,13 +19,13 @@ public class PantallaPrincipal extends JFrame {
 	private final Usuario loggedUser;
 	private final JDesktopPane desktopPane;
 	private final UsuarioService usuarioService;
-    //private final TurnoService turnoService;
+    private final TurnoService turnoService;
 
 	// Menú “Ver”
 	private JMenuItem miPacientes;
 	private JMenuItem miMedicos;
-	//private JMenuItem miTurnos;
-	//private JMenuItem miReportes;
+	private JMenuItem miTurnos;
+	private JMenuItem miReportes;
 	private JMenuItem miSalir;
 
 	public PantallaPrincipal(Usuario usuario) {
@@ -52,13 +53,13 @@ public class PantallaPrincipal extends JFrame {
 		// Ítems de menú
 		miMedicos = new JMenuItem("Medicos");
 		miPacientes = new JMenuItem("Pacientes");
-		//miTurnos = new JMenuItem("Turnos");
+		miTurnos = new JMenuItem("Turnos");
 		miReportes = new JMenuItem("Reportes");
 		miSalir = new JMenuItem("Salir");
 
 		menuVer.add(miMedicos);
 		menuVer.add(miPacientes);
-		//menuVer.add(miTurnos);
+		menuVer.add(miTurnos);
 		menuVer.add(miReportes);
 		menuVer.addSeparator();
 		menuVer.add(miSalir);
@@ -70,7 +71,7 @@ public class PantallaPrincipal extends JFrame {
 		if (usuario.getRol() == Rol.PACIENTE) {
 			miPacientes.setVisible(false);
 			miMedicos.setVisible(false);
-			//miReportes.setVisible(false);
+			miReportes.setVisible(false);
 		// Medicos solo ven pacientes
 		} else if (usuario.getRol() == Rol.MEDICO) 
 			miMedicos.setVisible(false);
@@ -85,7 +86,7 @@ public class PantallaPrincipal extends JFrame {
 		// Listeners de menú
 		miMedicos.addActionListener(e -> abrirMedicos());
 		miPacientes.addActionListener(e -> abrirPacientes());
-		//miTurnos.addActionListener(e -> abrirTurnos());
+		miTurnos.addActionListener(e -> abrirTurnos());
 		miReportes.addActionListener(e -> abrirReportes());
 		miSalir.addActionListener(e -> System.exit(0));
 
@@ -99,7 +100,7 @@ public class PantallaPrincipal extends JFrame {
         // Iniciar servicios
         try {
             usuarioService = new UsuarioService();
-            //turnoService   = new TurnoService();
+            turnoService   = new TurnoService();
         } catch (DAOException | SQLException ex) {
             throw new RuntimeException("No se pudo inicializar los servicios", ex);
         }
