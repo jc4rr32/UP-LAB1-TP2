@@ -47,6 +47,10 @@ public class UsuarioService {
 		// Validar campos obligatorios
 		ValidationUtils.validarNoVacio(usuario.getDni(), usuario.getNombre(), usuario.getApellido());
 		ValidationUtils.validarDni(usuario.getDni());
+		// Si el buscarPorDni devuelve algo distinto de null, significa que ya está ocupado.
+	    if (usuarioDao.buscarPorDni(usuario.getDni()) != null) {
+	        throw new DatosInvalidosException("El usuario con DNI " + usuario.getDni() + " ya se encuentra registrado.");
+	    }
 
 		try {
 			boolean ok = usuarioDao.guardar(usuario);
