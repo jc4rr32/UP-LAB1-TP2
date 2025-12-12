@@ -159,26 +159,30 @@ public class PantallaPrincipal extends JFrame {
 	
 	
 	private void abrirTurnos() {
-//		 try {
-//	            JInternalFrame jf = new JInternalFrame(
-//	                "Turnos",
-//	                true, true, true, true
-//	            );
-//	            PanelTablaTurnos panel = new PanelTablaTurnos(
-//	                loggedUser, turnoService
-//	            );
-//	            jf.setContentPane(panel);
-//	            jf.pack();
-//	            desktopPane.add(jf);
-//	            jf.setVisible(true);
-//	        } catch (Exception ex) {
-//	            JOptionPane.showMessageDialog(this,
-//	                "Error al abrir Turnos: " + ex.getMessage(),
-//	                "Error", JOptionPane.ERROR_MESSAGE);
-//	        }
+	    try {
+	        JInternalFrame jf = new JInternalFrame("Gestión de Turnos", true, true, true, true);
+	        PanelTurnos panel = new PanelTurnos();
+	        jf.setContentPane(panel);
+	        jf.pack();
+	        // Ajuste de tamaño mínimo para que se vea bien
+	        jf.setSize(600, 400); 
+	        desktopPane.add(jf);
+	        jf.setVisible(true);
+	    } catch (Exception ex) {
+	        ex.printStackTrace();
+	    }
 	}
 
 	private void abrirReportes() {
-		// TODO: crear y agregar JInternalFrame con PanelReporte(loggedUser)
+		try {
+	        JInternalFrame jf = new JInternalFrame("Reportes", true, true, true, true);
+	        PanelReportes panel = new PanelReportes();
+	        jf.setContentPane(panel);
+	        jf.setSize(500, 300);
+	        desktopPane.add(jf);
+	        jf.setVisible(true);
+	    } catch (Exception ex) {
+	        ex.printStackTrace();
+	    }
 	}
 }
