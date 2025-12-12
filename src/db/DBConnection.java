@@ -7,6 +7,7 @@ import java.sql.SQLException;
 /**
  * Clase para gestionar la conexión a la base de datos SQLite.
  * Mantiene una única conexión abierta durante el ciclo de vida de la aplicación.
+ * Acá uso full patrón Singleton: una sola conexión abierta a la base de datos a la vez para evitar conflictos.
  */
 public class DBConnection {
     private static final String URL = "jdbc:sqlite:turnera.db";
@@ -25,6 +26,7 @@ public class DBConnection {
             conn = DriverManager.getConnection(URL);
             // gestionamos transacciones manualmente
             // de esta manera, si tenemos varias operaciones (insertar turno y actualizar agenda) si falla alguna rollbackeamos todas y no individualmente
+            // porque las transacciones son binarias, se hacen completas o no se hacen.
             conn.setAutoCommit(false); 
         }
         return conn;

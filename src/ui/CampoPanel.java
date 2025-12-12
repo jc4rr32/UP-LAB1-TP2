@@ -3,7 +3,7 @@ package ui;
 import javax.swing.*;
 import java.awt.FlowLayout;
 
-/**
+/** COMPONENTE REUTILIZABLE
  * Panel que agrupa un JLabel y un campo de texto o contraseña.
  * Permite obtener o limpiar el contenido, comprobar si está vacío,
  * y acceder/desactivar el campo programáticamente.

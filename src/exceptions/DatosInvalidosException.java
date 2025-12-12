@@ -1,7 +1,7 @@
 package exceptions;
 
 /**
- * Excepción lanzada cuando los datos proporcionados no cumplen la validación.
+ * Excepción lanzada cuando los datos proporcionados no cumplen la validación. No es un error del sistema, es un error del usuario.
  */
 public class DatosInvalidosException extends Exception {
     /**

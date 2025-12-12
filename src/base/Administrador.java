@@ -1,6 +1,7 @@
 package base;
 /**
- * Representa un usuario administrador.
+ * Representa un usuario administrador. 
+ * TODO: manejar el ABM desde el sistema y no desde la DB.
  */
 public class Administrador extends Usuario {
 

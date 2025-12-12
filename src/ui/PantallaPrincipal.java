@@ -1,3 +1,7 @@
+//PANTALLA PRINCIPAL.
+// contenedor MDI (multiple document interface).
+
+
 package ui;
 
 import base.Rol;
@@ -16,7 +20,6 @@ import java.sql.SQLException;
 public class PantallaPrincipal extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    // Eliminamos 'contentPane' si no se usa o lo usamos como el panel principal
     private JDesktopPane desktopPane;
     private Usuario loggedUser;
     
@@ -81,15 +84,15 @@ public class PantallaPrincipal extends JFrame {
 
         // --- ESTRUCTURA PRINCIPAL (LAYOUT) ---
         
-        // 1. Panel contenedor principal con BorderLayout
+        // Panel contenedor principal con BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
         
-        // 2. El escritorio va al CENTRO (Ocupa todo el espacio disponible)
+        // El escritorio va al CENTRO (Ocupa todo el espacio disponible)
         desktopPane = new JDesktopPane();
         desktopPane.setBackground(Color.LIGHT_GRAY); // Un color de fondo suave
         mainPanel.add(desktopPane, BorderLayout.CENTER);
         
-        // 3. BARRA INFERIOR (Footer) va al SUR
+        // BARRA INFERIOR (Footer) va al SUR
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footerPanel.setBorder(BorderFactory.createEtchedBorder()); // Un borde sutil
         

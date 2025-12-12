@@ -1,3 +1,8 @@
+/*
+	CLASE BASE y abstracta (no puedo crear un usuario generico, solo puede ser médico, paciente o administrador)
+	
+	TODO: sobrecargar operadores para poder hacer chequeos entre usuarios (si son iguales)
+*/
 package base;
 
 public abstract class Usuario {
@@ -9,7 +14,7 @@ public abstract class Usuario {
     private Rol rol;
     private ObraSocial obraSocial;
     /**
-     * Constructor completo, con ID y DNI conocidos (por ejemplo, al leer de la base de datos)
+     * Constructor completo, con ID y DNI conocidos (para usar, por ejemplo, al leer de la base de datos)
      */
     public Usuario(int id, String dni, String nombre, String apellido, String email, Rol rol, ObraSocial obraSocial) {
         this.id = id;

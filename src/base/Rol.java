@@ -1,3 +1,9 @@
+/*
+ * ENUMERADOR
+ * Solo se usa como lista fija de opciones
+ * TODO: otra forma de crear admins
+ */
+
 package base;
 
 public enum Rol {

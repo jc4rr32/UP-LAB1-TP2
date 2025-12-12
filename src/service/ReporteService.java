@@ -64,7 +64,7 @@ public class ReporteService {
     public List<Object[]> generarReporteRecaudacion(LocalDate fechaDesde, LocalDate fechaHasta, int idMedico) 
             throws ServiceException, DatosInvalidosException {
         
-        // --- 1. VALIDACIONES DE NEGOCIO ---
+        // --- VALIDACIONES DE NEGOCIO ---
         
         // Validamos que las fechas no sean nulas (obligatorio)
         if (fechaDesde == null || fechaHasta == null) {
@@ -76,7 +76,7 @@ public class ReporteService {
             throw new DatosInvalidosException("La fecha de inicio no puede ser mayor a la fecha de fin.");
         }
 
-        // --- 2. PREPARACIÓN DE DATOS ---
+        // --- PREPARACIÓN DE DATOS ---
         
         // Convertimos LocalDate (solo fecha) a LocalDateTime (fecha y hora) para cubrir el día completo.
         // Desde: 00:00:00 del día seleccionado
@@ -85,7 +85,7 @@ public class ReporteService {
         LocalDateTime hasta = LocalDateTime.of(fechaHasta, LocalTime.MAX);
 
         try {
-            // --- 3. EJECUCIÓN DE CONSULTA SEGÚN CRITERIO ---
+            // --- EJECUCIÓN DE CONSULTA SEGÚN CRITERIO ---
             
             if (idMedico == -1) {
                 // CASO A: Reporte General (Opción "Todos los médicos")

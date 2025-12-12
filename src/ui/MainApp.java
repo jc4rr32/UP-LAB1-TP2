@@ -1,7 +1,7 @@
 /*
  * MAINAPP.JAVA
  * Entry point del sistema.
- * 
+ * Lo unico que hace es iniciar el programa de forma segura
  * 
  */
 package ui;
@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
 public class MainApp {
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> { //uso invokeLater porque las interfaces no son seguras para hilos, si no lo uso se puede crashear la jvm.
             try {
                 // Ya NO inicializamos la DB aca. 
                 // Asumo que la tabla existe.

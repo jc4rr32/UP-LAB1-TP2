@@ -1,7 +1,7 @@
 package exceptions;
 
 /**
- * Excepción genérica para errores en la capa DAO
+ * Excepción genérica para errores en la capa DAO. Capturan los errores de DAO.
  */
 public class DAOException extends Exception {
     /**

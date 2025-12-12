@@ -38,7 +38,7 @@ public class TurnoService {
                 throw new TurnoNoDisponibleException("El médico ya tiene un turno asignado en esa fecha y hora.");
             }
 
-            // 2. Guardar (El DAO hace el INSERT)
+            // Guardar (El DAO hace el INSERT)
             turnoDao.guardar(turno);
             
             // Confirmar cambios en la base de datos
@@ -53,7 +53,7 @@ public class TurnoService {
             }
 
             if (e instanceof TurnoNoDisponibleException) {
-                throw (TurnoNoDisponibleException) e;
+                throw (TurnoNoDisponibleException) e; //si el medico está ocupado
             }
             throw new ServiceException("Error al registrar turno: " + e.getMessage(), e);
         }
@@ -86,7 +86,7 @@ public class TurnoService {
     public List<Object[]> generarReporte(LocalDate fechaDesde, LocalDate fechaHasta, int idMedico) 
             throws ServiceException, DatosInvalidosException {
         
-        // 1. Validaciones
+        // Validaciones
         if (fechaDesde == null || fechaHasta == null) throw new DatosInvalidosException("Seleccione ambas fechas.");
         if (fechaDesde.isAfter(fechaHasta)) throw new DatosInvalidosException("Fecha desde mayor a fecha hasta.");
 

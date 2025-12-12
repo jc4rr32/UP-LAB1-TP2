@@ -29,7 +29,7 @@ import service.UsuarioService;
 /**
  * Pantalla de Reportes de Recaudación.
  * Permite filtrar por rango de fechas y por médico.
- * * Lógica de seguridad:
+ * * Lógica de seguridad (por diseño):
  * - ADMIN: Puede ver "Todos los médicos" (reporte general) o seleccionar uno específico.
  * - MÉDICO: Solo puede verse a sí mismo (el combo aparece bloqueado o con una única opción).
  */

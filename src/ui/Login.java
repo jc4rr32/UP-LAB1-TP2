@@ -8,7 +8,7 @@ import service.UsuarioService;
 import java.awt.*;
 
 /**
- * Ventana principal con pantalla de login.
+ * Ventana principal con pantalla de login. TODO: Contraseñas.
  */
 public class Login extends JFrame {
 	private JTextField tfDni;
@@ -20,10 +20,6 @@ public class Login extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
 
-//        // Título en barra
-//        JLabel lblTitle = new JLabel(getTitle(), SwingConstants.CENTER);
-//        lblTitle.setFont(lblTitle.getFont().deriveFont(Font.BOLD, 16f));
-//        add(lblTitle, BorderLayout.NORTH);
 
 		// Inicializar servicio de usuarios
 		try {
@@ -81,7 +77,7 @@ public class Login extends JFrame {
 
 	}
 
-	private void handleLogin() {
+	private void handleLogin() { //
 		String dni = tfDni.getText().trim();
 		try {
 			Usuario u = usuarioService.buscarPorDni(dni);

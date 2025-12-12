@@ -1,6 +1,6 @@
 package base;
 /**
- * Representa un médico en el sistema. Extiende de Usuario y agrega el atributo
+ * Representa un médico en el sistema. Hereda de Usuario y agrega el atributo
  * honorariosPorConsulta para reflejar cuánto cobra por cada consulta médica.
  */
 public class Medico extends Usuario {

@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 
 /**
+ * REUTILIZABLE
  * Panel que agrupa los botones comunes de los ABM: Agregar, Editar, Eliminar,
  * Limpiar y Cancelar.
  */

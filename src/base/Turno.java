@@ -54,12 +54,12 @@ public class Turno {
     public double getCosto() {
     	double costoBase = medico.getHonorariosPorConsulta();
         
-        // Si ambos tienen obra social, no son PARTICULAR, y coinciden...
+        // Si ambos tienen obra social, no son PARTICULAR, y coinciden
         if (medico.getObraSocial() != null && medico.getObraSocial() != ObraSocial.PARTICULAR &&
             paciente.getObraSocial() != null && 
             medico.getObraSocial() == paciente.getObraSocial()) {
             
-            return costoBase * 0.5; // Descuento por obra social. TODO: descuentos diferenciados si es OSDE, PAMI, etc
+            return costoBase * 0.5; // Descuento por obra social. TODO: descuentos diferenciados si es OSDE, PAMI, etc. Médicos que puedan atender mas de una OS.
         }
         
         return costoBase;

@@ -1,3 +1,7 @@
+/*
+ * DAO: define que acciones se pueden hacer (guardar, borrar, listar, etc) pero no como se hacen.
+ * Me sirve para cambiar la base de datos en el futuro sin romper todo el programa.
+*/
 package dao;
 
 import java.time.LocalDateTime;

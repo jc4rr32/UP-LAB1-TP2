@@ -1,3 +1,7 @@
+/*
+ * DAO: define que acciones se pueden hacer (guardar, borrar, listar, etc) pero no como se hacen.
+ * Me sirve para cambiar la base de datos en el futuro sin romper todo el programa.
+*/
 package dao;
 
 import java.util.List;
@@ -7,7 +11,7 @@ import base.Usuario;
 import exceptions.DAOException;
 
 /**
- * Interfaz DAO para operaciones CRUD genéricas sobre usuarios.
+ * Interfaz DAO para operaciones ABM genéricas sobre usuarios.
  * Define métodos para crear, leer, actualizar y eliminar usuarios.
  */
 public interface UsuarioDAO {

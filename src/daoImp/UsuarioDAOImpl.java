@@ -197,7 +197,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         double honor = rs.getDouble("honorariosPorConsulta");
         String osStr = rs.getString("obra_social");
         ObraSocial os = (osStr != null) ? ObraSocial.valueOf(osStr) : ObraSocial.PARTICULAR;
-
+     // La variable de retorno es 'Usuario' (Genérico)
+     // Pero la instancia real es específica (Polimorfismo)
         return switch (rol) {
             case MEDICO -> new Medico(id, dni, nom, ape, email, honor, os);
             case PACIENTE -> new Paciente(id, dni, nom, ape, email, os);

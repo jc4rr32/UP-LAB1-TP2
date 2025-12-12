@@ -1,3 +1,5 @@
+//TODO: Reutilizar codigo de obtenerReporte
+
 package daoImp;
 
 import java.sql.*;
@@ -16,7 +18,7 @@ import exceptions.DAOException;
 
 public class TurnoDAOImpl implements TurnoDAO {
     
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");  //esto es porque SQLite no tiene tipo de dato nativo para datetime
     private final Connection conn;
     
     // Constructor para inyección de conexión (usado por Service para transacciones)
@@ -24,7 +26,7 @@ public class TurnoDAOImpl implements TurnoDAO {
         this.conn = conn;
     }
 
- // Constructor vacío (Obtiene su propia conexión)
+ // Constructor vacío (Obtiene su propia conexión). Para operaciones de lectura y similares
     public TurnoDAOImpl() throws DAOException {
         try {
             this.conn = DBConnection.getConnection();
@@ -35,12 +37,12 @@ public class TurnoDAOImpl implements TurnoDAO {
 
     @Override
     public void guardar(Turno turno) throws DAOException {
-        String sql = "INSERT INTO turnos (fechaHora, medico_id, paciente_id) VALUES (?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "INSERT INTO turnos (fechaHora, medico_id, paciente_id) VALUES (?, ?, ?)"; //uso ? ? ? para evitar SQL injections
+        try (PreparedStatement ps = conn.prepareStatement(sql)) { //seteo los parámetros a guardar
             ps.setString(1, turno.getFechaHora().format(formatter));
             ps.setInt(2, turno.getMedico().getId());
             ps.setInt(3, turno.getPaciente().getId());
-            ps.executeUpdate();
+            ps.executeUpdate(); //acá no hay un conn commit porque la responsabilidad de confirmar el cambio es del servicio
         } catch (SQLException e) {
             throw new DAOException("Error al guardar turno", e);
         }
@@ -48,12 +50,12 @@ public class TurnoDAOImpl implements TurnoDAO {
 
     @Override
     public boolean existeTurnoMedico(int idMedico, LocalDateTime fechaHora) throws DAOException {
-        String sql = "SELECT COUNT(*) FROM turnos WHERE medico_id = ? AND fechaHora = ?";
+        String sql = "SELECT COUNT(*) FROM turnos WHERE medico_id = ? AND fechaHora = ?"; //cuantos turnos tiene este medico a esta hora en particular
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMedico);
             ps.setString(2, fechaHora.format(formatter));
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() && rs.getInt(1) > 0;
+                return rs.next() && rs.getInt(1) > 0; //si es mayor a 0, el médico está ocupado en ese horario
             }
         } catch (SQLException e) {
             throw new DAOException("Error al verificar disponibilidad", e);
@@ -61,8 +63,9 @@ public class TurnoDAOImpl implements TurnoDAO {
     }
 
     @Override
-    public List<Turno> listarTodos() throws DAOException {
+    public List<Turno> listarTodos() throws DAOException { //convierte filas de tablas en objetos
         // AGREGADO: ORDER BY t.fechaHora
+    	// Une la tabla turnos con la tabla usuarios por id para ver nombres y no números de id 
         String sql = """
             SELECT t.id, t.fechaHora,
                    m.id as m_id, m.dni as m_dni, m.nombre as m_nom, m.apellido as m_ape, m.email as m_mail, m.honorariosPorConsulta as m_hon, m.obra_social as m_os,
@@ -107,31 +110,33 @@ public class TurnoDAOImpl implements TurnoDAO {
         return ejecutarConsultaListado(sql, idMedico);
     }
 
-    private List<Turno> ejecutarConsultaListado(String sql, int idFiltro) throws DAOException {
+    private List<Turno> ejecutarConsultaListado(String sql, int idFiltro) throws DAOException { //este método lo uso para reutilizar código y no andar copiando y pegando
         List<Turno> lista = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            if (idFiltro != -1) {
+            if (idFiltro != -1) { //si es -1, no hay filtro
                 ps.setInt(1, idFiltro);
             }
             
             try (ResultSet rs = ps.executeQuery()) {
-                while(rs.next()) {
-                    ObraSocial osMedico = rs.getString("m_os") != null ? ObraSocial.valueOf(rs.getString("m_os")) : null;
+                while(rs.next()) { //lo uso para pasar los datos que obtuve de la db a los objetos correspondientes
+                    ObraSocial osMedico = rs.getString("m_os") != null ? ObraSocial.valueOf(rs.getString("m_os")) : null; //obra social del medico
+                    //creo objeto medico
                     Medico medico = new Medico(
                         rs.getInt("m_id"), rs.getString("m_dni"), rs.getString("m_nom"), 
                         rs.getString("m_ape"), rs.getString("m_mail"), rs.getDouble("m_hon"), osMedico
                     );
                     
+                    //reconstruyo objeto paciente y creo uno nuevo
                     ObraSocial osPaciente = rs.getString("p_os") != null ? ObraSocial.valueOf(rs.getString("p_os")) : null;
                     Paciente paciente = new Paciente(
                         rs.getInt("p_id"), rs.getString("p_dni"), rs.getString("p_nom"), 
                         rs.getString("p_ape"), rs.getString("p_mail"), osPaciente
                     );
                     
-                    LocalDateTime fecha = LocalDateTime.parse(rs.getString("fechaHora"), formatter);
+                    LocalDateTime fecha = LocalDateTime.parse(rs.getString("fechaHora"), formatter); //convertir string a fechqa
                     
-                    Turno t = new Turno(rs.getInt("id"), fecha, medico, paciente, null);
-                    lista.add(t);
+                    Turno t = new Turno(rs.getInt("id"), fecha, medico, paciente, null); //turno final uniendo todo
+                    lista.add(t); //guardo en la lista
                 }
             }
         } catch (SQLException e) {
@@ -143,6 +148,7 @@ public class TurnoDAOImpl implements TurnoDAO {
     @Override
     public Object[] obtenerReporteMedico(int idMedico, LocalDateTime desde, LocalDateTime hasta) throws DAOException {
         // Consulta: Une turnos con médicos, filtra por ID y Fechas, y calcula totales
+    	//TODO: Manejar mejor estos errores
         String sql = """
             SELECT m.nombre, m.apellido, COUNT(t.id) as cantidad, SUM(m.honorariosPorConsulta) as total
             FROM turnos t
@@ -158,7 +164,7 @@ public class TurnoDAOImpl implements TurnoDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // Validamos si trajo datos reales (si count es 0, nombre puede ser null)
+                    // Validamos si trajo datos reales (si count es 0, nombre puede ser NULL)
                     if (rs.getString("nombre") != null) {
                         return new Object[] {
                             rs.getString("nombre"),   // Índice 0
