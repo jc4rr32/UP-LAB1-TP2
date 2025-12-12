@@ -37,12 +37,6 @@ public class PantallaPrincipal extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
 
-//        // Etiqueta de bienvenida
-//        JLabel lblBienvenido = new JLabel(
-//            "Bienvenido, " + usuario.getNombre() + " " + usuario.getApellido(),
-//            SwingConstants.CENTER);
-//        lblBienvenido.setFont(lblBienvenido.getFont().deriveFont(Font.BOLD, 16f));
-//        add(lblBienvenido, BorderLayout.NORTH);
 
 		// Crear barra de menú
 		JMenuBar menuBar = new JMenuBar();
@@ -176,14 +170,18 @@ public class PantallaPrincipal extends JFrame {
 
 	private void abrirReportes() {
 		try {
-	        JInternalFrame jf = new JInternalFrame("Reportes", true, true, true, true);
-	        PanelReportes panel = new PanelReportes();
-	        jf.setContentPane(panel);
-	        jf.setSize(500, 300);
-	        desktopPane.add(jf);
-	        jf.setVisible(true);
-	    } catch (Exception ex) {
-	        ex.printStackTrace();
-	    }
+            JInternalFrame jf = new JInternalFrame("Reportes de Recaudación", true, true, true, true);
+            
+            // Pasamos el usuario logueado (loggedUser)
+            PanelReportes panel = new PanelReportes(loggedUser);
+            
+            jf.setContentPane(panel);
+            jf.pack();
+            jf.setSize(600, 450);
+            desktopPane.add(jf);
+            jf.setVisible(true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 	}
 }

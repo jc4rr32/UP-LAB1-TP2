@@ -18,7 +18,13 @@ public class TurnoDAOImpl implements TurnoDAO {
     
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final Connection conn;
+    
+    // Constructor para inyección de conexión (usado por Service para transacciones)
+    public TurnoDAOImpl(Connection conn) {
+        this.conn = conn;
+    }
 
+ // Constructor vacío (Obtiene su propia conexión)
     public TurnoDAOImpl() throws DAOException {
         try {
             this.conn = DBConnection.getConnection();
@@ -130,6 +136,74 @@ public class TurnoDAOImpl implements TurnoDAO {
             }
         } catch (SQLException e) {
             throw new DAOException("Error al listar turnos", e);
+        }
+        return lista;
+    }
+    
+    @Override
+    public Object[] obtenerReporteMedico(int idMedico, LocalDateTime desde, LocalDateTime hasta) throws DAOException {
+        // Consulta: Une turnos con médicos, filtra por ID y Fechas, y calcula totales
+        String sql = """
+            SELECT m.nombre, m.apellido, COUNT(t.id) as cantidad, SUM(m.honorariosPorConsulta) as total
+            FROM turnos t
+            JOIN usuarios m ON t.medico_id = m.id
+            WHERE t.medico_id = ? 
+            AND t.fechaHora >= ? AND t.fechaHora <= ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMedico);
+            ps.setString(2, desde.format(formatter));
+            ps.setString(3, hasta.format(formatter));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Validamos si trajo datos reales (si count es 0, nombre puede ser null)
+                    if (rs.getString("nombre") != null) {
+                        return new Object[] {
+                            rs.getString("nombre"),   // Índice 0
+                            rs.getString("apellido"), // Índice 1
+                            rs.getInt("cantidad"),    // Índice 2
+                            rs.getDouble("total")     // Índice 3
+                        };
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error al generar reporte individual", e);
+        }
+        return null;
+    }
+
+    @Override
+    public List<Object[]> obtenerReporteGeneral(LocalDateTime desde, LocalDateTime hasta) throws DAOException {
+        // Consulta: Agrupa por médico para mostrar cuánto recaudó cada uno en el periodo
+        String sql = """
+            SELECT m.nombre, m.apellido, COUNT(t.id) as cantidad, SUM(m.honorariosPorConsulta) as total
+            FROM turnos t
+            JOIN usuarios m ON t.medico_id = m.id
+            WHERE t.fechaHora >= ? AND t.fechaHora <= ?
+            GROUP BY m.id, m.nombre, m.apellido
+            ORDER BY total DESC
+        """;
+
+        List<Object[]> lista = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, desde.format(formatter));
+            ps.setString(2, hasta.format(formatter));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new Object[] {
+                        rs.getString("nombre"),
+                        rs.getString("apellido"),
+                        rs.getInt("cantidad"),
+                        rs.getDouble("total")
+                    });
+                }
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error al generar reporte general", e);
         }
         return lista;
     }

@@ -2,13 +2,18 @@ package service;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+
 import base.Turno;
 import dao.TurnoDAO;
 import daoImp.TurnoDAOImpl;
 import db.DBConnection;
-// import db.DBUtils; 
 import exceptions.DAOException;
+import exceptions.DatosInvalidosException;
 import exceptions.ServiceException;
 import exceptions.TurnoNoDisponibleException;
 
@@ -75,6 +80,30 @@ public class TurnoService {
             return turnoDao.listarPorMedico(idMedico);
         } catch (DAOException e) {
             throw new ServiceException("Error al obtener turnos del médico", e);
+        }
+    }
+    
+    public List<Object[]> generarReporte(LocalDate fechaDesde, LocalDate fechaHasta, int idMedico) 
+            throws ServiceException, DatosInvalidosException {
+        
+        // 1. Validaciones
+        if (fechaDesde == null || fechaHasta == null) throw new DatosInvalidosException("Seleccione ambas fechas.");
+        if (fechaDesde.isAfter(fechaHasta)) throw new DatosInvalidosException("Fecha desde mayor a fecha hasta.");
+
+        LocalDateTime desde = LocalDateTime.of(fechaDesde, LocalTime.MIN);
+        LocalDateTime hasta = LocalDateTime.of(fechaHasta, LocalTime.MAX);
+
+        try {
+            if (idMedico == -1) {
+                return turnoDao.obtenerReporteGeneral(desde, hasta);
+            } else {
+                Object[] res = turnoDao.obtenerReporteMedico(idMedico, desde, hasta);
+                List<Object[]> list = new ArrayList<>();
+                if (res != null) list.add(res);
+                return list;
+            }
+        } catch (DAOException e) {
+            throw new ServiceException("Error generando reporte", e);
         }
     }
 }
