@@ -4,6 +4,7 @@ import dao.UsuarioDAO;
 import exceptions.DAOException;
 import base.Administrador;
 import base.Medico;
+import base.ObraSocial;
 import base.Paciente;
 import base.Rol;
 import base.Usuario;
@@ -54,12 +55,14 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	        ps.setString(3, usuario.getApellido());
 	        ps.setString(4, usuario.getEmail());
 	        ps.setString(5, usuario.getRol().name());
+	        
 	        // Solo si el rol es MEDICO tomamos honorarios, en otros casos 0.0
 	        double honor = (usuario.getRol() == Rol.MEDICO)
 	            ? ((Medico) usuario).getHonorariosPorConsulta()
 	            : 0.0;
 	        ps.setDouble(6, honor);
-
+	        ps.setString(7, usuario.getObraSocial() != null ? usuario.getObraSocial().name() : null);
+	        
 	        int affected = ps.executeUpdate();
 	        if (affected == 0) return false;
 	        try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -222,10 +225,14 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	        String email = rs.getString("email");
 	        Rol rol      = Rol.valueOf(rs.getString("rol"));
 	        double honor = rs.getDouble("honorariosPorConsulta");
+	        
+	     // Leemos el string y lo convertimos a Enum (manejando nulos)
+	        String osStr = rs.getString("obra_social");
+	        ObraSocial os = (osStr != null) ? ObraSocial.valueOf(osStr) : ObraSocial.PARTICULAR;
 
 	        return switch (rol) {
-	            case MEDICO   -> new Medico(id, dni, nom, ape, email, honor);
-	            case PACIENTE -> new Paciente(id, dni, nom, ape, email);
+	            case MEDICO   -> new Medico(id, dni, nom, ape, email, honor, os);
+	            case PACIENTE -> new Paciente(id, dni, nom, ape, email, os);
 	            case ADMIN    -> new Administrador(id, dni, nom, ape, email);
 	            default      -> throw new DAOException("Rol desconocido: " + rol);
 	        };

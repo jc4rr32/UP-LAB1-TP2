@@ -70,11 +70,11 @@ public class TurnoDAOImpl implements TurnoDAO {
             while(rs.next()) {
                 Medico medico = new Medico(
                     rs.getInt("m_id"), rs.getString("m_dni"), rs.getString("m_nom"), 
-                    rs.getString("m_ape"), rs.getString("m_mail"), rs.getDouble("m_hon")
+                    rs.getString("m_ape"), rs.getString("m_mail"), rs.getDouble("m_hon"), null
                 );
                 Paciente paciente = new Paciente(
                     rs.getInt("p_id"), rs.getString("p_dni"), rs.getString("p_nom"), 
-                    rs.getString("p_ape"), rs.getString("p_mail")
+                    rs.getString("p_ape"), rs.getString("p_mail"), null
                 );
                 
                 LocalDateTime fecha = LocalDateTime.parse(rs.getString("fechaHora"), formatter);

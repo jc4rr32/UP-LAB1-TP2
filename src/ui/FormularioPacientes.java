@@ -1,5 +1,6 @@
 package ui;
 
+import base.ObraSocial;
 import base.Paciente;
 import base.Usuario;
 import service.UsuarioService;
@@ -13,18 +14,21 @@ import java.awt.*;
 
 /**
  * Formulario para crear o editar un Paciente.
- * Utiliza UsuarioService para persistir los datos y ValidationUtils para validaciones.
  */
 public class FormularioPacientes extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private final UsuarioService usuarioService;
-    private final String dniOriginal; // null para alta, DNI existente para edición
+    private final String dniOriginal; 
 
     private CampoPanel cpDni;
     private CampoPanel cpNombre;
     private CampoPanel cpApellido;
     private CampoPanel cpEmail;
+    
+    // NUEVO: Combo para Obra Social
+    private JComboBox<ObraSocial> cmbObraSocial;
+    
     private BotonPanel botonPanel;
 
     public FormularioPacientes(Window owner, UsuarioService usuarioService, String dni) {
@@ -34,7 +38,6 @@ public class FormularioPacientes extends JDialog {
 
         initComponents();
         if (dni != null) {
-        	// modo edición: no permito limpiar campos
             botonPanel.getBtnLimpiar().setVisible(false);
             cargarDatos(dni);
         }
@@ -42,16 +45,27 @@ public class FormularioPacientes extends JDialog {
 
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
-        JPanel panelCampos = new JPanel(new GridLayout(4, 1, 5, 5));
+        
+        // Panel vertical
+        JPanel panelCampos = new JPanel(new GridLayout(0, 1, 5, 5));
+        
         cpDni     = new CampoPanel("DNI:",     8, false);
         cpNombre  = new CampoPanel("Nombre:",  20, false);
         cpApellido= new CampoPanel("Apellido:",20, false);
         cpEmail   = new CampoPanel("Email:",   20, false);
 
+        // Panel para el combo
+        JPanel panelOS = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        panelOS.add(new JLabel("Obra Social:"));
+        cmbObraSocial = new JComboBox<>(ObraSocial.values());
+        panelOS.add(cmbObraSocial);
+
         panelCampos.add(cpDni);
         panelCampos.add(cpNombre);
         panelCampos.add(cpApellido);
         panelCampos.add(cpEmail);
+        panelCampos.add(panelOS); // Agregado
+        
         add(panelCampos, BorderLayout.CENTER);
 
         botonPanel = new BotonPanel();
@@ -60,7 +74,6 @@ public class FormularioPacientes extends JDialog {
         botonPanel.getBtnCancelar().setText("Cancelar");
         add(botonPanel, BorderLayout.SOUTH);
         
-        // Oculto los botones que no uso en este panel
         botonPanel.getBtnEditar().setVisible(false);
         botonPanel.getBtnEliminar().setVisible(false);
 
@@ -74,7 +87,7 @@ public class FormularioPacientes extends JDialog {
     }
 
     private void cargarDatos(String dni) {
-    	try {
+        try {
             Usuario u = usuarioService.buscarPorDni(dni);
             cpDni.setTexto(u.getDni());
             cpDni.getField().setEnabled(false);
@@ -82,7 +95,13 @@ public class FormularioPacientes extends JDialog {
             cpNombre.setTexto(u.getNombre());
             cpApellido.setTexto(u.getApellido());
             cpEmail.setTexto(u.getEmail());
-        } catch (DAOException | DatosInvalidosException ex) {
+            
+            // Cargar OS
+            if (u.getObraSocial() != null) {
+                cmbObraSocial.setSelectedItem(u.getObraSocial());
+            }
+            
+        } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                 "Error al cargar datos: " + ex.getMessage(),
                 "Error", JOptionPane.ERROR_MESSAGE);
@@ -90,7 +109,6 @@ public class FormularioPacientes extends JDialog {
     }
     
     private void guardarPaciente() {
-        // Validaciones previas
         try {
             ValidationUtils.validarNoVacio(
                 cpDni.getTexto(),
@@ -99,66 +117,40 @@ public class FormularioPacientes extends JDialog {
                 cpEmail.getTexto()
             );
             ValidationUtils.validarDni(cpDni.getTexto());
-        } catch (DatosInvalidosException ex) {
-            JOptionPane.showMessageDialog(this,
-                ex.getMessage(),
-                "Validación",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-        
-      
-        // Armo el paciente según modo alta o edición
-        if (dniOriginal == null) {
-            // ALTA
-        	Paciente paciente = new Paciente(
-	          cpDni.getTexto(),
-	          cpNombre.getTexto(),
-	          cpApellido.getTexto(),
-	          cpEmail.getTexto()
-    		);
-            try {
+            
+            ObraSocial os = (ObraSocial) cmbObraSocial.getSelectedItem();
+            
+            if (dniOriginal == null) {
+                // ALTA
+                Paciente paciente = new Paciente(
+                  cpDni.getTexto(),
+                  cpNombre.getTexto(),
+                  cpApellido.getTexto(),
+                  cpEmail.getTexto(),
+                  os // <---
+                );
                 usuarioService.crearUsuario(paciente);
                 JOptionPane.showMessageDialog(this, "Paciente creado con éxito.");
-                dispose();
-            } catch (DatosInvalidosException ex) {
-                JOptionPane.showMessageDialog(this,
-                    ex.getMessage(),
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-                );
-            } catch (DAOException | ConnectionException ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Error al crear paciente: " + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-                );
-            }
-        } else {
-            // EDICIÓN
-            try {
-            	
-                
+            } else {
+                // EDICIÓN
                 int id = usuarioService.buscarPorDni(dniOriginal).getId();
-                Paciente paciente = new Paciente(id, cpDni.getTexto(), cpNombre.getTexto(),
-                                                 cpApellido.getTexto(), cpEmail.getTexto());
+                Paciente paciente = new Paciente(
+                    id, 
+                    cpDni.getTexto(), 
+                    cpNombre.getTexto(),
+                    cpApellido.getTexto(), 
+                    cpEmail.getTexto(),
+                    os // <---
+                );
                 usuarioService.actualizarUsuario(paciente);
                 JOptionPane.showMessageDialog(this, "Paciente actualizado con éxito.");
-                dispose();
-            } catch (DatosInvalidosException ex) {
-                JOptionPane.showMessageDialog(this,
-                    ex.getMessage(),
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-                );
-            } catch (DAOException | ConnectionException ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Error al actualizar paciente: " + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-                );
             }
+            dispose();
+            
+        } catch (DatosInvalidosException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
+        } catch (DAOException | ConnectionException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -167,5 +159,6 @@ public class FormularioPacientes extends JDialog {
         cpNombre.limpiar();
         cpApellido.limpiar();
         cpEmail.limpiar();
+        cmbObraSocial.setSelectedIndex(0);
     }
 }
